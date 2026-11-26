@@ -32,5 +32,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .
-      - id: deployment
+      - id: first
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      # GitHub 偶爾會暫時找不到剛上傳的檔案，等一下再試一次
+      - if: steps.first.outcome == 'failure'
+        run: sleep 45
+      - id: retry
+        if: steps.first.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - id: deployment
+        run: echo "page_url=${{ steps.first.outputs.page_url || steps.retry.outputs.page_url }}" >> "$GITHUB_OUTPUT"
