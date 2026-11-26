@@ -5,8 +5,8 @@ backend:
   name: github
   repo: after-the-call/after-the-call
   branch: main
-  # 之後若架好免費的登入服務（Cloudflare Workers 上的 sveltia-cms-auth），把網址填在這裡，團隊就能直接按「用 GitHub 登入」：
-  # base_url: https://sveltia-cms-auth.xxxx.workers.dev
+  # 「使用 GitHub 登入」走這個免費登入服務（Cloudflare Workers 上的 sveltia-cms-auth，放在 jiajiasyuan 的 Cloudflare 帳號）
+  base_url: https://sveltia-cms-auth.jiajiasyun.workers.dev
 
 site_url: https://after-the-call.github.io/after-the-call/
 display_url: https://after-the-call.github.io/after-the-call/
