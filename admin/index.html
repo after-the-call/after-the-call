@@ -95,7 +95,7 @@
       <div class="seg" role="group" aria-label="狀態">${STATUSES.map(s=>`<button data-act="status" data-s="${s}" aria-pressed="${s===st}">${s}</button>`).join('')}</div>
       ${K.pin?`<button class="pin" data-act="pin" aria-pressed="${!!d.pinned}">${d.pinned?'已置頂':'置頂'}</button>`:'<span></span>'}
       <div class="acts"><a href="edit.html?kind=${state.kind}&id=${encodeURIComponent(i.id)}">編輯</a>
-        ${st!=='上架'&&state.kind==='notices'?`<a href="../notice.html?preview#${encodeURIComponent(i.id)}" target="_blank" rel="noopener">預覽</a>`:''}
+        <a href="../${state.kind==='notices'?'notice':'update'}.html${st!=='上架'?'?preview':''}#${encodeURIComponent(i.id)}" target="_blank" rel="noopener">${st==='上架'?'查看':'預覽'}</a>
         <button class="del" data-act="del">刪除</button></div>
     </div>`;
   }

@@ -36,7 +36,7 @@
   /* ── 頁首與頁尾 ── */
   const logo='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 33c10-1.5 22-1.5 32 0" stroke="#C9BFB0" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M10 19h20v13H10z" fill="#26333F"/><path d="M7 20 20 9l13 11" fill="#1D2834"/><rect x="17" y="23" width="6" height="5" rx="1" fill="#F5B85C"/><circle cx="33" cy="9" r="3" fill="#D2622A"/></svg>';
   const links=[['home',HOME,'首頁'],['notices','notices.html','公告'],['podcast','podcast.html','Podcast'],['updates','updates.html','最新動態'],['about','about.html','關於計畫']];
-  const cur=page==='episode'?'podcast':page==='notice'?'notices':page;
+  const cur=page==='episode'?'podcast':page==='notice'?'notices':page==='update'?'updates':page;
   const head=document.createElement('header');head.className='site-head';
   head.innerHTML=`<div class="wrap"><a class="brand" href="${HOME}">${logo}<span><b>出勤之後</b><small>After the Call</small></span></a>
     <nav class="site-nav" aria-label="主選單"><ul>${links.map(([k,h,t])=>`<li><a href="${h}"${k===cur?' aria-current="page"':''}>${t}</a></li>`).join('')}</ul><a class="btn primary" href="podcast.html">收聽 Podcast</a></nav></div>`;
@@ -151,16 +151,44 @@
     });
   }
 
-  /* ── 最新動態 ── */
-  const ul=$('#update-list'),ru=$('#recent-updates');
-  if(ul||ru) getJSON('data/updates.json').then(d=>{
-    const updates=(d.updates||[]).filter(u=>u.status?u.status==='上架':u.published!==false).map(u=>Object.assign({},u,{date:u.date_text||u.date||''}));
-    if(ul) ul.innerHTML=updates.map(u=>{const im=(u.images||[]).filter(i=>i&&i.src),ln=(u.links||[]).filter(l=>l&&l.url);
-      return `<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div style="min-width:0"><h3>${esc(u.title)}</h3><div class="u-text">${md(u.body)}</div>
-      ${im.length?`<div class="u-photos">${im.map(i=>`<figure><a href="${esc(i.src)}" target="_blank" rel="noopener"><img src="${esc(i.src)}" alt="${esc(i.cap||u.title)}" loading="lazy"></a>${i.cap?`<figcaption>${esc(i.cap)}</figcaption>`:''}</figure>`).join('')}</div>`:''}
-      ${ln.length?`<div class="u-links">${ln.map(l=>`<a class="arrow-link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.text||'前往連結')}</a>`).join('')}</div>`:''}</div></li>`}).join('');
-    if(ru) ru.innerHTML=updates.slice(0,3).map(u=>`<a class="list-row" href="updates.html"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
-  }).catch(()=>{});
+  /* ── 最新動態 ──
+     列表在 updates.html，每則點進去是 update.html#代號（跟公告一樣）。網址加 ?preview 可以看草稿和下架的。 */
+  const ul=$('#update-list'),ru=$('#recent-updates'),ud=$('#update');
+  const updateURL=u=>'update.html'+(PREVIEW?'?preview':'')+'#'+encodeURIComponent(u.id);
+  if(ul||ru||ud) getJSON('data/updates.json').then(d=>{
+    const updates=(d.updates||[]).map((u,k)=>Object.assign({},u,{id:String(u.id||'u'+k),date:u.date_text||u.date||'',
+      published:u.status?u.status==='上架':u.published!==false,status:u.status||'上架',
+      images:(u.images||[]).filter(i=>i&&i.src),links:(u.links||[]).filter(l=>l&&l.url)})).filter(u=>u.published||PREVIEW);
+    const excerpt=u=>{const t=String(u.body||'').replace(/^\s*([-*+・•]|\d+[.)])\s+/gm,'').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_>`~]+/g,'').replace(/\s+/g,' ').trim();return t.length>90?t.slice(0,90)+'…':t};
+    if(ul) ul.innerHTML=updates.map(u=>`<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div>
+      <a class="u-item" href="${updateURL(u)}">${u.images[0]?`<span class="u-thumb"><img src="${esc(u.images[0].src)}" alt="" loading="lazy"></span>`:''}
+        <span class="u-main"><h3>${u.published?'':`<b class="off">${u.status==='下架'?'已下架':'草稿'}</b>`}${esc(u.title)}</h3>${excerpt(u)?`<p>${esc(excerpt(u))}</p>`:''}<span class="more">看完整內容</span></span></a></li>`).join('');
+    if(ru) ru.innerHTML=updates.filter(u=>u.published).slice(0,3).map(u=>`<a class="list-row" href="${updateURL(u)}"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
+    if(ud){
+      const draw=()=>{
+        const id=decodeURIComponent(location.hash.slice(1));const u=updates.find(x=>x.id===id);
+        if(!u){document.title='最新動態｜出勤之後';ud.innerHTML='<div class="wrap nd-empty"><p>這則動態已經下架，或是網址不完整。</p><a class="btn outline" href="updates.html">看所有動態</a></div>';return}
+        document.title=u.title+'｜出勤之後';
+        const [hero,...rest]=u.images;const others=updates.filter(x=>x!==u&&x.published).slice(0,4);
+        ud.innerHTML=`<article class="nd"><div class="wrap nd-grid">
+          <div class="nd-main">
+            <a class="nd-back" href="updates.html">← 所有動態</a>
+            ${u.published?'':`<p class="nd-preview">這是預覽：這則動態目前是「${esc(u.status)}」，一般訪客看不到。</p>`}
+            <p class="nd-meta">${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}<time>${esc(u.date)}</time></p>
+            <h1>${esc(u.title)}</h1>
+            ${hero?`<figure class="nd-hero"><img src="${esc(hero.src)}" alt="${esc(hero.cap||u.title)}">${hero.cap?`<figcaption>${esc(hero.cap)}</figcaption>`:''}</figure>`:''}
+            <div class="nd-text">${md(u.body)}</div>
+            ${rest.length?`<div class="nd-gallery">${rest.map(i=>`<figure><a href="${esc(i.src)}" target="_blank" rel="noopener"><img src="${esc(i.src)}" alt="${esc(i.cap||'')}" loading="lazy"></a>${i.cap?`<figcaption>${esc(i.cap)}</figcaption>`:''}</figure>`).join('')}</div>`:''}
+            ${u.links.length?`<div class="nd-links">${u.links.map((l,k)=>`<a class="btn ${k?'outline':'primary'}" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.text||'前往連結')}</a>`).join('')}</div>`:''}
+          </div>
+          <aside class="nd-side">${others.length?`<h3>其他動態</h3><ul>${others.map(x=>`<li><a href="${updateURL(x)}"><time>${esc(x.date)}</time><span>${esc(x.title)}</span></a></li>`).join('')}</ul><a class="arrow-link" href="updates.html">全部動態</a>`:''}
+            <div class="box"><h3>需要聊聊</h3><p>1925 安心專線 24 小時都有人接。</p></div></aside>
+        </div></article>`;
+        window.scrollTo(0,0);
+      };
+      draw();window.addEventListener('hashchange',draw);
+    }
+  }).catch(()=>{if(ud)ud.innerHTML='<div class="wrap nd-empty"><p>讀取失敗，請重新整理。</p></div>'});
 
   /* ── Podcast 資料 ── */
   const podcast=window.PODCAST||{episodes:[]};
@@ -293,7 +321,7 @@
   /* ── 自動同步 Firstory（免費版最多回傳 10 集，較舊的從快照補上） ── */
   const st=$('#feed-status');
   if(st) st.textContent='單集清單：備用快照（'+episodes.length+' 集）';
-  if(podcast.rss&&page!=='notices'&&page!=='notice'&&page!=='updates'&&page!=='about'){
+  if(podcast.rss&&page!=='notices'&&page!=='notice'&&page!=='update'&&page!=='updates'&&page!=='about'){
     fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(podcast.rss)).then(r=>r.json()).then(d=>{
       if(d.status!=='ok'||!d.items||!d.items.length)return;
       const toText=h=>{const t=document.createElement('div');t.innerHTML=(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n\n');return (t.textContent||'').replace(/ /g,' ').split(/\n?📍/)[0].replace(/\n{3,}/g,'\n\n').trim()};
