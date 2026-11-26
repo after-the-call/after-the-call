@@ -113,7 +113,7 @@ textarea{resize:vertical;line-height:1.75}
 
   function user(){try{return JSON.parse(localStorage.getItem('sveltia-cms.user')||'null')}catch(e){return null}}
   const token=()=>{const u=user();return u&&u.token};
-  function gate(msg){$('#savebar').hidden=true;app.innerHTML=`<div class="gate"><h1>請先登入</h1><p>${esc(msg||'用 GitHub 帳號登入後才能新增或編輯。')}</p><a class="btn primary" href="editor/">前往登入</a><p class="hint">登入完成後，按左下角「← 回總覽」。</p></div>`}
+  function gate(msg){$('#savebar').hidden=true;app.innerHTML=`<div class="gate"><h1>請先登入</h1><p>${esc(msg||'用 GitHub 帳號登入後才能新增或編輯。')}</p><a class="btn primary" href="editor/?back=${encodeURIComponent(location.pathname+location.search+location.hash)}">前往登入</a><p class="hint">登入完成後會自動回到這裡。</p></div>`}
   let toastT;function toast(t,err){const el=$('#toast');el.textContent=t;el.className='toast show'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>el.className='toast',err?6000:3000)}
   async function gh(path,opt={}){
     const r=await fetch(API+path,Object.assign({},opt,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token(),'X-GitHub-Api-Version':'2022-11-28'}}));

@@ -11,10 +11,26 @@
     padding:9px 16px;border-radius:999px;background:#1D2834;color:#fff;font:600 14px/1.2 "Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
     text-decoration:none;box-shadow:0 4px 14px rgba(0,0,0,.18)}
   .atc-back:hover{background:#D2622A}
+  .atc-wait{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;background:#F7F3EC;color:#1D2834;
+    font:600 17px/1.5 "Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
 </style>
 </head>
 <body>
 <a class="atc-back" href="../">← 回總覽</a>
+<script>
+/* 從總覽按「前往登入」過來的：登入完成就自動回去，不停在這個編輯畫面 */
+(function(){
+  let back=new URLSearchParams(location.search).get('back');if(!back)return;
+  try{const u=new URL(back,location.href);if(u.origin!==location.origin)return;back=u.href}catch(e){return}
+  const tok=()=>{try{const u=JSON.parse(localStorage.getItem('sveltia-cms.user')||'null');return u&&u.token}catch(e){return null}};
+  const first=tok();
+  const go=()=>{const t=tok();if(!t||t===first&&first)return false;
+    const w=document.createElement('div');w.className='atc-wait';w.textContent='登入完成，正在回到總覽…';document.body.appendChild(w);
+    location.replace(back);return true};
+  const timer=setInterval(()=>{if(go())clearInterval(timer)},400);
+  window.addEventListener('storage',e=>{if(e.key==='sveltia-cms.user'&&go())clearInterval(timer)});
+})();
+</script>
 <script src="https://unpkg.com/@sveltia/cms@0.258.1/dist/sveltia-cms.js"></script>
 </body>
 </html>

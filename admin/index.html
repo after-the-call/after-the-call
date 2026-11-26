@@ -41,7 +41,7 @@
   function token(){const u=user();return u&&u.token}
   function gate(msg){
     app.innerHTML=`<div class="gate"><h1>請先登入</h1><p>${esc(msg||'用 GitHub 帳號登入後，就能在這裡管理公告和最新動態。')}</p>
-      <a class="btn primary" href="editor/">前往登入</a><p class="hint">登入完成後，按左下角「← 回總覽」回到這裡。</p></div>`;
+      <a class="btn primary" href="editor/?back=${encodeURIComponent(location.pathname+location.search.replace(/[?&]loggedout=1/,'')+location.hash)}">前往登入</a><p class="hint">登入完成後會自動回到這裡。</p></div>`;
   }
 
   let toastT;
