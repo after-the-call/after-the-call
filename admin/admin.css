@@ -64,3 +64,5 @@ main{max-width:1160px;margin:0 auto;padding:28px 20px 80px}
   .acts{justify-content:flex-end}
 }
 @media (max-width:480px){.seg button{padding:6px 9px}.row{padding:14px;gap:10px}.pin{padding:6px 9px}.acts a,.acts button{padding:6px 6px}}
+.top .logout{border:1px solid rgba(244,239,231,.45);background:none;color:#F4EFE7;border-radius:6px;padding:4px 12px;font-size:.85rem}
+.top .logout:hover{background:rgba(255,255,255,.12)}

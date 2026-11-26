@@ -16,6 +16,7 @@
   <a class="brand" href="./"><img src="logo.svg" alt=""><span>出勤之後 刊登後台<small>After the Call</small></span></a>
   <span class="sp"></span>
   <span class="who" id="who"></span>
+  <button type="button" class="logout" id="logout" hidden>登出</button>
   <a class="link" href="editor/">完整編輯畫面</a>
   <a class="link" href="../" target="_blank" rel="noopener">看網站 ↗</a>
 </div></header>
@@ -138,14 +139,21 @@
 
   async function start(){
     const u=user();
-    if(!token()){gate();return}
-    $('#who').textContent=u.login?('已登入：'+u.login):'';
+    if(!token()){gate(/loggedout/.test(location.search)?'已登出。要再使用時，請重新登入。':'');return}
+    $('#who').textContent=u.login?('已登入：'+u.login):'';$('#logout').hidden=false;
     try{
       const [n,up]=await Promise.all([loadKind('notices'),loadKind('updates')]);
       state.items={notices:n,updates:up};render();
       try{const t=sessionStorage.getItem('atc-admin-toast');if(t){sessionStorage.removeItem('atc-admin-toast');toast(t)}}catch(x){}
     }catch(e){if(e.message!=='401')app.innerHTML='<p class="note err">讀取資料失敗。請重新整理；如果一直失敗，請到「完整編輯畫面」重新登入。</p>'}
   }
+  /* 登出：清掉這個瀏覽器記住的登入狀態（編輯畫面也會一起登出） */
+  $('#logout').addEventListener('click',()=>{
+    if(typeof dirty!=='undefined'&&dirty&&!confirm('還有沒儲存的變更，確定要登出嗎？'))return;
+    try{localStorage.removeItem('sveltia-cms.user');sessionStorage.clear()}catch(e){}
+    try{dirty=false}catch(e){}
+    location.href='./?loggedout=1';
+  });
   start();
   /* 在別的分頁登入或登出時，自動重新載入 */
   window.addEventListener('storage',e=>{if(e.key==='sveltia-cms.user')start()});
