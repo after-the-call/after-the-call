@@ -143,6 +143,7 @@
     try{
       const [n,up]=await Promise.all([loadKind('notices'),loadKind('updates')]);
       state.items={notices:n,updates:up};render();
+      try{const t=sessionStorage.getItem('atc-admin-toast');if(t){sessionStorage.removeItem('atc-admin-toast');toast(t)}}catch(x){}
     }catch(e){if(e.message!=='401')app.innerHTML='<p class="note err">讀取資料失敗。請重新整理；如果一直失敗，請到「完整編輯畫面」重新登入。</p>'}
   }
   start();

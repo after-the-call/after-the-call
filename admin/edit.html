@@ -263,10 +263,10 @@ textarea{resize:vertical;line-height:1.75}
     const put=s=>gh(`/repos/${REPO}/contents/${path}`,{method:'PUT',body:JSON.stringify(Object.assign({message:msg,content:b64enc(body),branch:BRANCH},s?{sha:s}:{}))});
     try{
       let r;try{r=await put(sha)}catch(e){if(e.status!==409&&e.status!==422)throw e;const cur=await gh(`/repos/${REPO}/contents/${path}?ref=${BRANCH}&t=${Date.now()}`);r=await put(cur.sha)}
-      sha=r.content.sha;const wasNew=isNew;isNew=false;setDirty(false);
-      if(wasNew)history.replaceState(null,'',`edit.html?kind=${kind}&id=${id}`);
-      toast(data.status==='上架'?'已儲存並上架，網站約 1 到 2 分鐘後更新':'已儲存');
-      render();
+      dirty=false;
+      /* 存好後回總覽，並在總覽顯示提示 */
+      try{sessionStorage.setItem('atc-admin-kind',kind);sessionStorage.setItem('atc-admin-toast',`已儲存「${data.title}」`+(data.status==='上架'?'，網站約 1 到 2 分鐘後更新':`（${data.status}）`))}catch(x){}
+      location.href='./';return;
     }catch(e){if(e.status===401)gate('登入已過期，請重新登入一次。你剛剛填的內容還沒存，登入後請再填一次。');else toast('儲存失敗，請再試一次。',true)}
     finally{const b=$('#save');if(b){b.disabled=false;b.textContent='儲存'}}
   }
