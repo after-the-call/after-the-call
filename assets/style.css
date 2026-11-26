@@ -432,9 +432,9 @@ figcaption{font-size:.85rem;color:var(--mute);margin-top:8px}
 .timeline .u-main{min-width:0;display:block;flex:1}
 .timeline .u-item:hover h3{color:var(--accent)}
 .timeline .u-item p{margin-top:6px}
-.timeline .u-thumb{flex:none;width:150px;aspect-ratio:4/3;border-radius:4px;overflow:hidden;background:var(--line);order:2}
+.timeline .u-thumb{flex:none;width:200px;aspect-ratio:16/9;border-radius:4px;overflow:hidden;background:var(--line);order:2}
 .timeline .u-thumb img{width:100%;height:100%;object-fit:cover}
 .timeline .more{display:inline-block;margin-top:8px;font-weight:700;color:var(--accent);font-size:.9rem}
 .timeline .more::after{content:" →"}
 .timeline .off{font-size:.75rem;font-weight:700;color:var(--sub);background:var(--line);padding:2px 8px;border-radius:2px;margin-right:10px;vertical-align:2px}
-@media (max-width:640px){.timeline .u-thumb{width:96px}}
+@media (max-width:640px){.timeline .u-thumb{width:120px}}
