@@ -155,7 +155,10 @@
   const ul=$('#update-list'),ru=$('#recent-updates');
   if(ul||ru) getJSON('data/updates.json').then(d=>{
     const updates=(d.updates||[]).filter(u=>u.status?u.status==='上架':u.published!==false).map(u=>Object.assign({},u,{date:u.date_text||u.date||''}));
-    if(ul) ul.innerHTML=updates.map(u=>`<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div><h3>${esc(u.title)}</h3><p>${esc(u.body)}</p></div></li>`).join('');
+    if(ul) ul.innerHTML=updates.map(u=>{const im=(u.images||[]).filter(i=>i&&i.src),ln=(u.links||[]).filter(l=>l&&l.url);
+      return `<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div style="min-width:0"><h3>${esc(u.title)}</h3><div class="u-text">${md(u.body)}</div>
+      ${im.length?`<div class="u-photos">${im.map(i=>`<figure><a href="${esc(i.src)}" target="_blank" rel="noopener"><img src="${esc(i.src)}" alt="${esc(i.cap||u.title)}" loading="lazy"></a>${i.cap?`<figcaption>${esc(i.cap)}</figcaption>`:''}</figure>`).join('')}</div>`:''}
+      ${ln.length?`<div class="u-links">${ln.map(l=>`<a class="arrow-link" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.text||'前往連結')}</a>`).join('')}</div>`:''}</div></li>`}).join('');
     if(ru) ru.innerHTML=updates.slice(0,3).map(u=>`<a class="list-row" href="updates.html"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
   }).catch(()=>{});
 

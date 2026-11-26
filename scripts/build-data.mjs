@@ -23,6 +23,7 @@ const notices = entries('content/notices').filter(n => n.title).sort(byDate).map
 }));
 const updates = entries('content/updates').filter(u => u.title).sort(byDate).map(u => ({
   id: u.id, title: u.title, status: u.status || '草稿', tag: u.tag || '', date: u.date || '', date_text: u.date_text || '', body: u.body || '',
+  images: (u.images || []).filter(i => i && i.src), links: (u.links || []).filter(l => l && l.url),
 }));
 
 fs.mkdirSync(path.join(root, 'data'), { recursive: true });

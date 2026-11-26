@@ -80,14 +80,14 @@ collections:
         required: false
         hint: 點進公告後看到的完整內容。可以分段、加粗、條列、插入連結或圖片。
       - name: images
-        label: 圖片
-        label_singular: 圖片
+        label: 照片
+        label_singular: 照片
         widget: list
         required: false
         hint: 第一張會放在標題下方當主圖，其餘排在內容後面。
         summary: "{{fields.cap}}"
         fields:
-          - {name: src, label: 圖片檔, widget: image}
+          - {name: src, label: 照片檔, widget: image}
           - {name: cap, label: 圖說, widget: string, required: false}
       - name: links
         label: 連結按鈕
@@ -133,7 +133,31 @@ collections:
         required: false
       - {name: date, label: 日期, widget: datetime, type: date, default: "{{now}}", hint: 用來排序，新的排前面。}
       - {name: date_text, label: 顯示的日期文字, widget: string, required: false, hint: 選填，例如「2026-秋」。不填就顯示上面的日期。}
-      - {name: body, label: 內容, widget: text, required: false}
+      - name: body
+        label: 內容
+        widget: markdown
+        required: false
+        hint: 可以分段、加粗、條列、插入連結。
+      - name: images
+        label: 照片
+        label_singular: 照片
+        widget: list
+        required: false
+        hint: 可以放多張，會排在內容下面，點了可以看大圖。
+        summary: "{{fields.cap}}"
+        fields:
+          - {name: src, label: 照片檔, widget: image}
+          - {name: cap, label: 圖說, widget: string, required: false}
+      - name: links
+        label: 連結按鈕
+        label_singular: 連結
+        widget: list
+        required: false
+        hint: 例如「活動照片集」「新聞報導」「完整報告」。
+        summary: "{{fields.text}}"
+        fields:
+          - {name: text, label: 按鈕文字, widget: string}
+          - {name: url, label: 網址, widget: string, pattern: ['^https?://', '請貼上 http 或 https 開頭的完整網址']}
 
   - name: settings
     label: 網站設定

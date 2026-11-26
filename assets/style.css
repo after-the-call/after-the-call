@@ -415,3 +415,14 @@ figcaption{font-size:.85rem;color:var(--mute);margin-top:8px}
 .nd-text blockquote{margin-left:0;padding:4px 0 4px 18px;border-left:3px solid var(--line);color:var(--sub)}
 .nd-text img{border-radius:4px;margin:8px 0}
 .nd-text strong{font-weight:700}
+
+/* 最新動態：內容、照片、連結 */
+.timeline .u-text{margin-top:6px;color:var(--sub);max-width:42em}
+.timeline .u-text>*+*{margin-top:.8em}
+.timeline .u-text p{margin-top:0}
+.timeline .u-text ul,.timeline .u-text ol{padding-left:1.3em;margin-bottom:0}
+.timeline .u-text a{color:var(--accent)}
+.u-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:18px;max-width:42em}
+.u-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;background:var(--line)}
+.u-photos figcaption{font-size:.82rem}
+.u-links{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:16px}
