@@ -1,5 +1,5 @@
 # 出勤之後｜刊登後台設定（Sveltia CMS）
-# 後台網址：https://after-the-call.github.io/after-the-call/admin/
+# 後台編輯畫面：https://after-the-call.github.io/after-the-call/admin/editor/（入口總覽頁在 /admin/）
 # 團隊在後台按「儲存」後，內容會存進 GitHub 的 content/ 資料夾，網站約 1 到 2 分鐘後更新。
 # 每則公告、每則動態各是一個檔案；狀態分「草稿／上架／下架」，只有「上架」會出現在網站上。
 backend:
