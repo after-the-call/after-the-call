@@ -9,74 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
-<style>
-/* 刊登後台總覽：所有公告與動態一覽，直接切換狀態與置頂。顏色沿用網站。 */
-:root{--bg:#F8F5F0;--surface:#fff;--ink:#1F1B17;--sub:#5C554D;--mute:#8C847A;--line:#E5DED3;--accent:#D2622A;--deep:#1D2834;
-  --ok:#2F7D4F;--ok-bg:#E4F2E9;--draft:#8A6D1F;--draft-bg:#FBF1D6;--off:#6B645C;--off-bg:#ECE7E0;--danger:#B3261E;
-  --font:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color-scheme:light}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased}
-a{color:inherit}
-button{font:inherit;color:inherit;cursor:pointer}
-.top{background:var(--deep);color:#F4EFE7}
-.top .in{max-width:1160px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.top .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:900;letter-spacing:.08em}
-.top .brand img{width:30px;height:30px;background:#F4EFE7;border-radius:6px;padding:2px}
-.top .brand small{display:block;font-weight:500;letter-spacing:.1em;font-size:.72rem;opacity:.7}
-.top .sp{flex:1}
-.top a.link{color:#F4EFE7;opacity:.85;text-decoration:none;font-size:.92rem}
-.top a.link:hover{opacity:1;text-decoration:underline}
-.top .who{font-size:.85rem;opacity:.7}
-main{max-width:1160px;margin:0 auto;padding:28px 20px 80px}
-.tabs{display:flex;gap:6px;border-bottom:1.5px solid var(--ink)}
-.tabs button{border:0;background:none;padding:10px 18px;font-weight:700;font-size:1.05rem;color:var(--mute);border-bottom:3px solid transparent;margin-bottom:-1.5px}
-.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
-.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:20px 0 12px}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chips button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;font-size:.9rem}
-.chips button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
-.chips b{font-weight:500;opacity:.6;margin-left:4px}
-.search{flex:1;min-width:180px;max-width:320px;border:1px solid var(--line);border-radius:6px;padding:7px 12px;font:inherit;background:var(--surface)}
-.btn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:6px;padding:9px 18px;font-weight:700;text-decoration:none;white-space:nowrap}
-.btn.primary{background:var(--accent);color:#fff}
-.btn.primary:hover{filter:brightness(1.07)}
-.btn.ghost{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
-.list{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.row{display:grid;grid-template-columns:minmax(0,1fr) auto 6.2em 10.5em;gap:10px 18px;align-items:center;padding:14px 18px;border-top:1px solid var(--line)}
-.row:first-child{border-top:0}
-.row.busy{opacity:.55;pointer-events:none}
-.row .t{font-weight:700;font-size:1rem;line-height:1.45;overflow-wrap:anywhere}
-.row .meta{font-size:.82rem;color:var(--mute);margin-top:2px;display:flex;gap:10px;flex-wrap:wrap}
-.row .meta .type{color:var(--sub)}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--bg)}
-.seg button{border:0;background:none;padding:6px 13px;font-size:.88rem;font-weight:500;color:var(--sub)}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button[aria-pressed="true"][data-s="草稿"]{background:var(--draft-bg);color:var(--draft);font-weight:700}
-.seg button[aria-pressed="true"][data-s="上架"]{background:var(--ok-bg);color:var(--ok);font-weight:700}
-.seg button[aria-pressed="true"][data-s="下架"]{background:var(--off-bg);color:var(--off);font-weight:700}
-.pin{display:inline-flex;align-items:center;justify-content:center;width:100%;gap:6px;border:1px solid var(--line);background:var(--bg);border-radius:7px;padding:6px 12px;font-size:.88rem;color:var(--sub)}
-.pin[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
-.acts{display:flex;gap:2px;justify-content:flex-end}
-.acts a,.acts button{white-space:nowrap;border:0;background:none;padding:6px 10px;border-radius:6px;font-size:.88rem;color:var(--sub);text-decoration:none}
-.acts a:hover,.acts button:hover{background:var(--bg);color:var(--ink)}
-.acts .del.confirm{background:var(--danger);color:#fff}
-.empty,.note{padding:40px 20px;text-align:center;color:var(--sub)}
-.note.err{color:var(--danger)}
-.gate{max-width:460px;margin:60px auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:36px 32px;text-align:center}
-.gate h1{font-size:1.4rem;margin:0 0 10px}
-.gate p{color:var(--sub);margin:0 0 22px}
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--deep);color:#fff;padding:11px 20px;border-radius:8px;font-size:.92rem;transition:.25s;pointer-events:none;max-width:calc(100% - 32px)}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.err{background:var(--danger)}
-.hint{font-size:.85rem;color:var(--mute);margin-top:14px}
-@media (max-width:820px){
-  .row{grid-template-columns:auto auto minmax(0,1fr)}
-  .pin{width:auto}
-  .row .main{grid-column:1 / -1}
-  .acts{justify-content:flex-end}
-}
-@media (max-width:480px){.seg button{padding:6px 9px}.row{padding:14px;gap:10px}.pin{padding:6px 9px}.acts a,.acts button{padding:6px 6px}}
-</style>
+<link rel="stylesheet" href="admin.css?v=2">
 </head>
 <body>
 <header class="top"><div class="in">
@@ -147,7 +80,7 @@ main{max-width:1160px;margin:0 auto;padding:28px 20px 80px}
         <div class="chips">${['全部',...STATUSES].map(s=>`<button data-filter="${s}" aria-pressed="${s===state.filter}">${s==='全部'?'全部':s==='上架'?'上架中':s==='下架'?'已下架':'草稿'}<b>${s==='全部'?all.length:count(s)}</b></button>`).join('')}</div>
         <input class="search" type="search" placeholder="搜尋標題" value="${esc(state.q)}" aria-label="搜尋標題">
         <span style="flex:1"></span>
-        <a class="btn primary" href="editor/#/collections/${K.coll}/new">＋ 新增${K.label}</a>
+        <a class="btn primary" href="edit.html?kind=${state.kind}">＋ 新增${K.label}</a>
       </div>
       <div class="list">${list.length?list.map(row).join(''):`<p class="empty">${all.length?'沒有符合的項目。':'還沒有任何'+K.label+'，按右上角「新增」開始。'}</p>`}</div>
       <p class="hint">在這裡切換狀態或置頂會馬上存檔，網站約 1 到 2 分鐘後更新。只有「上架」的會出現在網站上。要改標題、內容、照片或連結，按「編輯」。</p>`;
@@ -161,7 +94,7 @@ main{max-width:1160px;margin:0 auto;padding:28px 20px 80px}
         <div class="meta">${date?`<span>${esc(date)}</span>`:''}${(d.type||d.tag)?`<span class="type">${esc(d.type||d.tag)}</span>`:''}</div></div>
       <div class="seg" role="group" aria-label="狀態">${STATUSES.map(s=>`<button data-act="status" data-s="${s}" aria-pressed="${s===st}">${s}</button>`).join('')}</div>
       ${K.pin?`<button class="pin" data-act="pin" aria-pressed="${!!d.pinned}">${d.pinned?'已置頂':'置頂'}</button>`:'<span></span>'}
-      <div class="acts"><a href="editor/#/collections/${K.coll}/entries/${encodeURIComponent(i.id)}">編輯</a>
+      <div class="acts"><a href="edit.html?kind=${state.kind}&id=${encodeURIComponent(i.id)}">編輯</a>
         ${st!=='上架'&&state.kind==='notices'?`<a href="../notice.html?preview#${encodeURIComponent(i.id)}" target="_blank" rel="noopener">預覽</a>`:''}
         <button class="del" data-act="del">刪除</button></div>
     </div>`;

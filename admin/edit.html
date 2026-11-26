@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>編輯｜出勤之後刊登後台</title>
+<link rel="icon" href="logo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="admin.css?v=2">
+<style>
+/* 新增／編輯頁 */
+main{max-width:860px;padding-bottom:120px}
+.crumb{font-size:.92rem;color:var(--sub);text-decoration:none}
+.crumb:hover{color:var(--accent)}
+h1.page{font-size:1.5rem;margin:8px 0 22px;font-weight:900}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:22px 24px;margin-bottom:18px}
+.card>h2{font-size:.95rem;margin:0 0 14px;color:var(--sub);letter-spacing:.06em}
+.f{margin-top:18px}
+.f:first-of-type{margin-top:0}
+.f>label,.f>.lab{display:block;font-weight:700;margin-bottom:6px}
+.f .req{color:var(--accent);margin-left:4px;font-weight:500;font-size:.85rem}
+.help{font-size:.84rem;color:var(--mute);margin-top:6px}
+input[type=text],input[type=url],input[type=date],textarea,select{width:100%;border:1px solid var(--line);border-radius:6px;padding:9px 12px;font:inherit;background:#fff;color:var(--ink)}
+input:focus,textarea:focus,select:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent}
+textarea{resize:vertical;line-height:1.75}
+.title-in{font-size:1.2rem;font-weight:700}
+.status-row{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}
+.status-row .seg button{padding:8px 18px;font-size:.95rem}
+.toggle{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle .sw{width:40px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:.2s;flex:none}
+.toggle .sw::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle input:checked+.sw{background:var(--accent)}
+.toggle input:checked+.sw::after{left:21px}
+.toggle input:focus-visible+.sw{outline:2px solid var(--accent);outline-offset:2px}
+.status-note{font-size:.85rem;color:var(--mute);margin-top:10px}
+.pick{display:flex;flex-wrap:wrap;gap:6px}
+.pick button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 14px;font-size:.92rem}
+.pick button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.tools{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px}
+.tools button{border:1px solid var(--line);background:var(--bg);border-radius:5px;padding:4px 10px;font-size:.85rem}
+.tools button:hover{border-color:var(--accent);color:var(--accent)}
+.tools .sp{flex:1}
+.preview{border:1px dashed var(--line);border-radius:6px;padding:14px 16px;background:var(--bg);line-height:1.9;min-height:120px}
+.preview>*+*{margin-top:.9em}.preview p,.preview ul,.preview ol,.preview h2,.preview h3{margin-bottom:0}.preview>:first-child{margin-top:0}
+.preview a{color:var(--accent)}.preview img{max-width:100%;border-radius:4px}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.ph{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.ph .img{aspect-ratio:4/3;background:var(--line) center/cover no-repeat;position:relative}
+.ph .badge{position:absolute;left:8px;top:8px;background:var(--accent);color:#fff;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:3px}
+.ph .up{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,255,255,.7);font-size:.85rem;color:var(--sub)}
+.ph input{border:0;border-top:1px solid var(--line);border-radius:0;font-size:.88rem;padding:8px 10px}
+.ph .ctl{display:flex;border-top:1px solid var(--line)}
+.ph .ctl button{flex:1;border:0;background:none;padding:6px 0;font-size:.82rem;color:var(--sub)}
+.ph .ctl button+button{border-left:1px solid var(--line)}
+.ph .ctl button:hover{color:var(--accent)}
+.ph .ctl button:disabled{opacity:.3;cursor:default}
+.addph{border:2px dashed var(--line);border-radius:8px;display:grid;place-items:center;text-align:center;aspect-ratio:4/3;color:var(--sub);cursor:pointer;background:none;font-size:.92rem;padding:10px}
+.addph:hover,.addph.drag{border-color:var(--accent);color:var(--accent)}
+.links .lk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) auto;gap:8px;margin-bottom:8px;align-items:center}
+.links .lk .rm{border:0;background:none;color:var(--sub);padding:6px 8px;border-radius:5px}
+.links .lk .rm:hover{color:var(--danger);background:var(--bg)}
+.links .first{font-size:.78rem;color:var(--accent);font-weight:700;grid-column:1/-1;margin:-2px 0 -4px}
+.addlink{border:1px dashed var(--line);background:none;border-radius:6px;padding:8px 14px;color:var(--sub);font-size:.92rem}
+.addlink:hover{border-color:var(--accent);color:var(--accent)}
+.savebar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -4px 16px rgba(0,0,0,.05);z-index:10}
+.savebar .in{max-width:860px;margin:0 auto;padding:12px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.savebar .msg{flex:1;font-size:.88rem;color:var(--mute);min-width:160px}
+.savebar .msg.dirty{color:var(--draft)}
+.btn[disabled]{opacity:.55;cursor:default}
+.err-text{color:var(--danger);font-size:.85rem;margin-top:5px}
+.del-zone{margin-top:30px;text-align:right}
+.del-zone button{border:0;background:none;color:var(--sub);font-size:.88rem;text-decoration:underline}
+.del-zone button.confirm{background:var(--danger);color:#fff;text-decoration:none;padding:7px 14px;border-radius:6px}
+@media (max-width:640px){.two{grid-template-columns:minmax(0,1fr)}.card{padding:18px 16px}.links .lk{grid-template-columns:minmax(0,1fr) auto}.links .lk .u{grid-column:1}.links .lk .rm{grid-row:1 / span 2;grid-column:2}.status-row .seg button{padding:8px 13px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="in">
+  <a class="brand" href="./"><img src="logo.svg" alt=""><span>出勤之後 刊登後台<small>After the Call</small></span></a>
+  <span class="sp"></span>
+  <span class="who" id="who"></span>
+  <a class="link" href="../" target="_blank" rel="noopener">看網站 ↗</a>
+</div></header>
+
+<main id="app"><p class="note">載入中…</p></main>
+<div class="savebar" id="savebar" hidden><div class="in">
+  <span class="msg" id="msg"></span>
+  <a class="btn ghost" href="./" id="cancel">回總覽</a>
+  <button class="btn primary" id="save" type="button">儲存</button>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="file" accept="image/*" multiple hidden>
+
+<script>
+(function(){
+  const REPO='after-the-call/after-the-call',BRANCH='main',API='https://api.github.com';
+  const KINDS={
+    notices:{label:'公告',dir:'content/notices',types:['Podcast','招募','調查','活動','課程','其他'],typeKey:'type',typeLabel:'類型'},
+    updates:{label:'最新動態',dir:'content/updates',types:['調查','Podcast','試點','倡議','課程','團隊'],typeKey:'tag',typeLabel:'類別'}
+  };
+  const qs=new URLSearchParams(location.search);
+  const kind=KINDS[qs.get('kind')]?qs.get('kind'):'notices',K=KINDS[kind];
+  let id=qs.get('id')||'',sha=null,isNew=!id;
+  const $=s=>document.querySelector(s),app=$('#app');
+  const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+  function user(){try{return JSON.parse(localStorage.getItem('sveltia-cms.user')||'null')}catch(e){return null}}
+  const token=()=>{const u=user();return u&&u.token};
+  function gate(msg){$('#savebar').hidden=true;app.innerHTML=`<div class="gate"><h1>請先登入</h1><p>${esc(msg||'用 GitHub 帳號登入後才能新增或編輯。')}</p><a class="btn primary" href="editor/">前往登入</a><p class="hint">登入完成後，按左下角「← 回總覽」。</p></div>`}
+  let toastT;function toast(t,err){const el=$('#toast');el.textContent=t;el.className='toast show'+(err?' err':'');clearTimeout(toastT);toastT=setTimeout(()=>el.className='toast',err?6000:3000)}
+  async function gh(path,opt={}){
+    const r=await fetch(API+path,Object.assign({},opt,{headers:{'Accept':'application/vnd.github+json','Authorization':'Bearer '+token(),'X-GitHub-Api-Version':'2022-11-28'}}));
+    if(r.status===401){const e=new Error('401');e.status=401;throw e}
+    if(!r.ok){const e=new Error('GitHub '+r.status);e.status=r.status;throw e}
+    return r.status===204?null:r.json();
+  }
+  const b64dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+  const bytesToB64=bytes=>{let bin='';for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+0x8000));return btoa(bin)};
+  const b64enc=s=>bytesToB64(new TextEncoder().encode(s));
+  const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(4)),b=>b.toString(16).padStart(2,'0')).join('');
+
+  /* 內容預覽：跟網站公告頁同一套簡易排版規則 */
+  const inline=s=>esc(s).replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g,(m,a,u)=>`<img src="${u}" alt="${a}">`)
+    .replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g,(m,t,u)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>`)
+    .replace(/(^|[\s（(])(https?:\/\/[^\s<>"）)]+)/g,(m,p,u)=>`${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\s][^*]*?)\*/g,'$1<em>$2</em>');
+  const md=src=>String(src||'').replace(/\r/g,'').trim().split(/\n\s*\n/).map(b=>{const ls=b.split('\n');
+    const h=b.match(/^(#{1,4})\s+(.*)$/);if(h&&ls.length===1)return `<h3>${inline(h[2])}</h3>`;
+    if(ls.every(l=>/^\s*[-*+・•]\s+/.test(l)))return '<ul>'+ls.map(l=>'<li>'+inline(l.replace(/^\s*[-*+・•]\s+/,''))+'</li>').join('')+'</ul>';
+    if(ls.every(l=>/^\s*\d+[.)]\s+/.test(l)))return '<ol>'+ls.map(l=>'<li>'+inline(l.replace(/^\s*\d+[.)]\s+/,''))+'</li>').join('')+'</ol>';
+    return '<p>'+ls.map(inline).join('<br>')+'</p>'}).join('');
+
+  let data={},dirty=false;
+  const blank=()=>kind==='notices'
+    ?{title:'',status:'草稿',pinned:false,hot:true,type:'',date:today(),date_text:'',summary:'',body:'',images:[],links:[]}
+    :{title:'',status:'草稿',tag:'',date:today(),date_text:'',body:'',images:[],links:[]};
+
+  function setDirty(v){dirty=v;const m=$('#msg');m.textContent=v?'有尚未儲存的變更':(isNew?'還沒儲存':'已儲存');m.className='msg'+(v?' dirty':'')}
+  window.addEventListener('beforeunload',e=>{if(dirty||pending()){e.preventDefault();e.returnValue=''}});
+  const pending=()=>data.images&&data.images.some(i=>i._uploading);
+
+  function render(){
+    const st=data.status||'草稿',tk=K.typeKey;
+    document.title=(isNew?'新增':'編輯')+K.label+'｜出勤之後刊登後台';
+    app.innerHTML=`<a class="crumb" href="./">← 回總覽</a>
+    <h1 class="page">${isNew?'新增':'編輯'}${K.label}</h1>
+
+    <section class="card"><h2>刊登設定</h2>
+      <div class="status-row">
+        <div><div class="lab" style="font-weight:700;margin-bottom:6px">狀態</div>
+          <div class="seg" role="group" aria-label="狀態">${['草稿','上架','下架'].map(s=>`<button type="button" data-status="${s}" data-s="${s}" aria-pressed="${s===st}">${s}</button>`).join('')}</div></div>
+        ${kind==='notices'?`<label class="toggle"><input type="checkbox" id="pinned" ${data.pinned?'checked':''}><span class="sw"></span>置頂</label>
+        <label class="toggle"><input type="checkbox" id="hot" ${data.hot!==false?'checked':''}><span class="sw"></span>放進首頁輪播</label>`:''}
+      </div>
+      <p class="status-note" id="stnote">${st==='上架'?'儲存後會出現在網站上。':st==='下架'?'網站上看不到，資料會保留。':'草稿只有後台看得到，確認好再改成「上架」。'}</p>
+    </section>
+
+    <section class="card"><h2>基本資料</h2>
+      <div class="f"><label for="title">標題<span class="req">必填</span></label><input class="title-in" type="text" id="title" value="${esc(data.title)}" placeholder="例如：招募：行政負擔焦點團體"><div class="err-text" id="title-err" hidden>請填寫標題</div></div>
+      <div class="f"><span class="lab">${K.typeLabel}</span><div class="pick" id="types">${K.types.map(t=>`<button type="button" data-type="${esc(t)}" aria-pressed="${data[tk]===t}">${esc(t)}</button>`).join('')}</div></div>
+      <div class="f two">
+        <div><label for="date">日期</label><input type="date" id="date" value="${esc(data.date||'')}"><div class="help">用來排序，新的排前面。</div></div>
+        <div><label for="date_text">顯示的日期文字（選填）</label><input type="text" id="date_text" value="${esc(data.date_text||'')}" placeholder="例如：2027-02 中旬（預定）"><div class="help">不填就顯示左邊的日期。</div></div>
+      </div>
+      ${kind==='notices'?`<div class="f"><label for="summary">摘要（選填）</label><textarea id="summary" rows="2" placeholder="列表上顯示的一兩句話，不填會自動用內容開頭">${esc(data.summary||'')}</textarea></div>`:''}
+    </section>
+
+    <section class="card"><h2>內容</h2>
+      <div class="tools" role="toolbar" aria-label="排版">
+        <button type="button" data-md="bold"><b>粗體</b></button><button type="button" data-md="h">小標題</button><button type="button" data-md="ul">・條列</button><button type="button" data-md="ol">1. 編號</button><button type="button" data-md="link">插入連結</button>
+        <span class="sp"></span><button type="button" id="pv">預覽</button></div>
+      <textarea id="body" rows="12" placeholder="空一行就是新的段落。">${esc(data.body||'')}</textarea>
+      <div class="preview" id="preview" hidden></div>
+      <div class="help">空一行是新段落；選取文字後按「粗體」或「插入連結」。</div>
+    </section>
+
+    <section class="card"><h2>照片</h2>
+      <div class="photos" id="photos"></div>
+      <div class="help">${kind==='notices'?'第一張會放在標題下方當主圖，其餘排在內容後面。':'照片會排在內容下面。'}可以一次選多張，也可以直接把照片拖進虛線框。太大的照片會自動縮小。</div>
+    </section>
+
+    <section class="card links"><h2>連結按鈕</h2>
+      <div id="links"></div>
+      <button type="button" class="addlink" id="addlink">＋ 新增連結</button>
+      <div class="help">${kind==='notices'?'第一個會是橘色主要按鈕，例如「立即報名」。':'例如「活動照片集」「新聞報導」。'}</div>
+    </section>
+    ${isNew?'':`<div class="del-zone"><button type="button" id="del">刪除這則${K.label}</button></div>`}`;
+    drawPhotos();drawLinks();
+    $('#savebar').hidden=false;setDirty(dirty);
+  }
+
+  function drawPhotos(){
+    const box=$('#photos');const im=data.images||[];
+    box.innerHTML=im.map((p,k)=>`<div class="ph" data-k="${k}"><div class="img" style="background-image:url('${esc(p._preview||('../'+p.src))}')">${k===0&&kind==='notices'?'<span class="badge">主圖</span>':''}${p._uploading?'<span class="up">上傳中…</span>':''}</div>
+      <input type="text" data-cap value="${esc(p.cap||'')}" placeholder="圖說（選填）" aria-label="圖說">
+      <div class="ctl"><button type="button" data-mv="-1" ${k===0?'disabled':''} aria-label="往前">←</button><button type="button" data-mv="1" ${k===im.length-1?'disabled':''} aria-label="往後">→</button><button type="button" data-rmph>移除</button></div></div>`).join('')
+      +`<button type="button" class="addph" id="addph">＋ 加入照片<br><small>或把照片拖進來</small></button>`;
+  }
+  function drawLinks(){
+    const box=$('#links');const ls=data.links||[];
+    box.innerHTML=ls.map((l,k)=>`<div class="lk" data-k="${k}">${k===0&&kind==='notices'?'<span class="first">主要按鈕</span>':''}
+      <input type="text" data-lt value="${esc(l.text||'')}" placeholder="按鈕文字，例如：立即報名" aria-label="按鈕文字">
+      <input type="url" class="u" data-lu value="${esc(l.url||'')}" placeholder="https://…" aria-label="網址">
+      <button type="button" class="rm" data-rmlk aria-label="移除這個連結">移除</button></div>`).join('');
+  }
+
+  /* 照片：縮到最寬 1600 像素再上傳到 assets/uploads/ */
+  function shrink(file){
+    return new Promise(ok=>{
+      if(!/^image\/(jpeg|png|webp)$/.test(file.type)){file.arrayBuffer().then(b=>ok({bytes:new Uint8Array(b),ext:(file.name.split('.').pop()||'img').toLowerCase(),url:URL.createObjectURL(file)}));return}
+      const img=new Image();img.onload=()=>{
+        const max=1600,sc=Math.min(1,max/img.naturalWidth);
+        if(sc===1&&file.size<900000){file.arrayBuffer().then(b=>ok({bytes:new Uint8Array(b),ext:file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg',url:img.src}));return}
+        const c=document.createElement('canvas');c.width=Math.round(img.naturalWidth*sc);c.height=Math.round(img.naturalHeight*sc);
+        const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+        c.toBlob(bl=>bl.arrayBuffer().then(b=>ok({bytes:new Uint8Array(b),ext:'jpg',url:URL.createObjectURL(bl)})),'image/jpeg',.85);
+      };img.onerror=()=>file.arrayBuffer().then(b=>ok({bytes:new Uint8Array(b),ext:'jpg',url:''}));img.src=URL.createObjectURL(file);
+    });
+  }
+  async function addFiles(files){
+    for(const f of [...files].filter(f=>f.type.startsWith('image/'))){
+      const item={src:'',cap:'',_uploading:true,_preview:''};data.images=data.images||[];data.images.push(item);setDirty(true);drawPhotos();
+      try{
+        const r=await shrink(f);item._preview=r.url;drawPhotos();
+        const d=new Date(),name=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}-${rid()}.${r.ext}`,path='assets/uploads/'+name;
+        await gh(`/repos/${REPO}/contents/${path}`,{method:'PUT',body:JSON.stringify({message:`上傳照片 ${name}`,content:bytesToB64(r.bytes),branch:BRANCH})});
+        item.src=path;item._uploading=false;
+      }catch(e){data.images=data.images.filter(x=>x!==item);toast(e.status===401?'登入已過期，請重新登入後再上傳。':'照片上傳失敗，請再試一次。',true)}
+      drawPhotos();
+    }
+  }
+
+  function collect(){
+    const v=s=>{const el=$(s);return el?el.value.trim():''};
+    data.title=v('#title');data.date=v('#date');data.date_text=v('#date_text');if($('#summary'))data.summary=v('#summary');
+    data.body=$('#body').value.replace(/\s+$/,'');
+    if($('#pinned')){data.pinned=$('#pinned').checked;data.hot=$('#hot').checked}
+    document.querySelectorAll('.ph').forEach(el=>{const p=data.images[+el.dataset.k];if(p)p.cap=el.querySelector('[data-cap]').value.trim()});
+    document.querySelectorAll('.lk').forEach(el=>{const l=data.links[+el.dataset.k];if(l){l.text=el.querySelector('[data-lt]').value.trim();l.url=el.querySelector('[data-lu]').value.trim()}});
+  }
+  function clean(){
+    const o=Object.assign({},data);
+    o.images=(o.images||[]).filter(i=>i.src&&!i._uploading).map(i=>({src:i.src,cap:i.cap||''}));
+    o.links=(o.links||[]).filter(l=>l.url||l.text).map(l=>({text:l.text||'',url:l.url||''}));
+    return o;
+  }
+
+  async function save(){
+    collect();
+    if(!data.title){$('#title-err').hidden=false;$('#title').focus();toast('請先填寫標題',true);return}
+    if(pending()){toast('照片還在上傳，請等一下再儲存',true);return}
+    const bad=(data.links||[]).find(l=>l.url&&!/^https?:\/\//.test(l.url));if(bad){toast('連結網址要以 http:// 或 https:// 開頭',true);return}
+    const btn=$('#save');btn.disabled=true;btn.textContent='儲存中…';
+    if(isNew)id=rid();
+    const path=`${K.dir}/${id}.json`,body=JSON.stringify(clean(),null,2)+'\n';
+    const msg=`${isNew?'新增':'更新'}${K.label}「${data.title}」（${data.status}）`;
+    const put=s=>gh(`/repos/${REPO}/contents/${path}`,{method:'PUT',body:JSON.stringify(Object.assign({message:msg,content:b64enc(body),branch:BRANCH},s?{sha:s}:{}))});
+    try{
+      let r;try{r=await put(sha)}catch(e){if(e.status!==409&&e.status!==422)throw e;const cur=await gh(`/repos/${REPO}/contents/${path}?ref=${BRANCH}&t=${Date.now()}`);r=await put(cur.sha)}
+      sha=r.content.sha;const wasNew=isNew;isNew=false;setDirty(false);
+      if(wasNew)history.replaceState(null,'',`edit.html?kind=${kind}&id=${id}`);
+      toast(data.status==='上架'?'已儲存並上架，網站約 1 到 2 分鐘後更新':'已儲存');
+      render();
+    }catch(e){if(e.status===401)gate('登入已過期，請重新登入一次。你剛剛填的內容還沒存，登入後請再填一次。');else toast('儲存失敗，請再試一次。',true)}
+    finally{const b=$('#save');if(b){b.disabled=false;b.textContent='儲存'}}
+  }
+
+  /* 編輯器小工具 */
+  function wrapSel(before,after,ph){const t=$('#body'),s=t.selectionStart,e=t.selectionEnd,sel=t.value.slice(s,e)||ph;t.setRangeText(before+sel+after,s,e,'select');t.focus();setDirty(true)}
+  function prefixLines(fn){const t=$('#body');let s=t.value.lastIndexOf('\n',t.selectionStart-1)+1,e=t.value.indexOf('\n',t.selectionEnd);if(e<0)e=t.value.length;
+    const lines=t.value.slice(s,e).split('\n').map(fn);t.setRangeText(lines.join('\n'),s,e,'select');t.focus();setDirty(true)}
+
+  app.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    if(b.dataset.status){collect();data.status=b.dataset.status;setDirty(true);render();return}
+    if(b.dataset.type){collect();const tk=K.typeKey;data[tk]=data[tk]===b.dataset.type?'':b.dataset.type;setDirty(true);render();return}
+    if(b.dataset.md){const m=b.dataset.md;
+      if(m==='bold')wrapSel('**','**','粗體文字');
+      else if(m==='h')prefixLines(l=>'## '+l.replace(/^#+\s*/,''));
+      else if(m==='ul')prefixLines(l=>'- '+l.replace(/^\s*[-*・•]\s*/,''));
+      else if(m==='ol')prefixLines((l,i)=>(i+1)+'. '+l.replace(/^\s*\d+[.)]\s*/,''));
+      else if(m==='link'){const u=prompt('貼上網址（https://…）');if(u)wrapSel('[','](' + u.trim() + ')','連結文字')}
+      return}
+    if(b.id==='pv'){const p=$('#preview'),t=$('#body');const on=p.hidden;p.hidden=!on;t.hidden=on;if(on)p.innerHTML=md(t.value)||'<p style="color:var(--mute)">（還沒有內容）</p>';b.textContent=on?'繼續編輯':'預覽';return}
+    if(b.id==='addph'){$('#file').click();return}
+    if(b.id==='addlink'){collect();data.links=data.links||[];data.links.push({text:'',url:''});setDirty(true);drawLinks();const last=document.querySelectorAll('[data-lt]');last[last.length-1].focus();return}
+    const ph=b.closest('.ph');
+    if(ph&&b.dataset.mv){collect();const k=+ph.dataset.k,j=k+(+b.dataset.mv);const a=data.images;[a[k],a[j]]=[a[j],a[k]];setDirty(true);drawPhotos();return}
+    if(ph&&b.hasAttribute('data-rmph')){collect();data.images.splice(+ph.dataset.k,1);setDirty(true);drawPhotos();return}
+    const lk=b.closest('.lk');if(lk&&b.hasAttribute('data-rmlk')){collect();data.links.splice(+lk.dataset.k,1);setDirty(true);drawLinks();return}
+    if(b.id==='del'){
+      if(!b.classList.contains('confirm')){b.classList.add('confirm');b.textContent='確定刪除？刪除後無法在後台復原';setTimeout(()=>{if(b.isConnected){b.classList.remove('confirm');b.textContent=`刪除這則${K.label}`}},5000);return}
+      b.disabled=true;gh(`/repos/${REPO}/contents/${K.dir}/${id}.json`,{method:'DELETE',body:JSON.stringify({message:`刪除${K.label}「${data.title}」`,sha,branch:BRANCH})})
+        .then(()=>{dirty=false;location.href='./'}).catch(()=>{b.disabled=false;toast('刪除失敗，請重新整理再試一次。',true)});
+    }
+  });
+  app.addEventListener('input',e=>{if(e.target.matches('input,textarea')){setDirty(true);if(e.target.id==='title')$('#title-err').hidden=true}});
+  app.addEventListener('change',e=>{if(e.target.type==='checkbox')setDirty(true)});
+  $('#file').addEventListener('change',e=>{collect();addFiles(e.target.files);e.target.value=''});
+  app.addEventListener('dragover',e=>{const z=e.target.closest('#addph');if(z){e.preventDefault();z.classList.add('drag')}});
+  app.addEventListener('dragleave',e=>{const z=e.target.closest('#addph');if(z)z.classList.remove('drag')});
+  app.addEventListener('drop',e=>{const z=e.target.closest('#addph');if(z){e.preventDefault();collect();addFiles(e.dataTransfer.files)}});
+  $('#save').addEventListener('click',save);
+  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();save()}});
+
+  async function start(){
+    if(!token()){gate();return}
+    const u=user();$('#who').textContent=u.login?('已登入：'+u.login):'';
+    if(isNew){data=blank();render();return}
+    try{const d=await gh(`/repos/${REPO}/contents/${K.dir}/${encodeURIComponent(id)}.json?ref=${BRANCH}&t=${Date.now()}`);sha=d.sha;data=Object.assign(blank(),JSON.parse(b64dec(d.content)));render()}
+    catch(e){if(e.status===401)gate('登入已過期，請重新登入一次。');else app.innerHTML=`<p class="note err">${e.status===404?'找不到這則'+K.label+'，可能已經被刪除。':'讀取失敗，請重新整理。'}</p><p style="text-align:center"><a class="btn ghost" href="./">回總覽</a></p>`}
+  }
+  start();
+})();
+</script>
+</body>
+</html>
