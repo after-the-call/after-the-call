@@ -18,9 +18,11 @@
 <body>
 <a class="atc-back" href="../">← 回總覽</a>
 <script>
-/* 從總覽按「前往登入」過來的：登入完成就自動回去，不停在這個編輯畫面 */
+/* 登入完成後自動回總覽（或回到按「前往登入」的那一頁） */
 (function(){
-  let back=new URLSearchParams(location.search).get('back');if(!back)return;
+  /* 直接打開這頁登入的，登入後也回總覽；原本就登入著的則留在這裡 */
+  const tok0=(()=>{try{const u=JSON.parse(localStorage.getItem('sveltia-cms.user')||'null');return u&&u.token}catch(e){return null}})();
+  let back=new URLSearchParams(location.search).get('back')||(tok0?'':'../');if(!back)return;
   try{const u=new URL(back,location.href);if(u.origin!==location.origin)return;back=u.href}catch(e){return}
   const tok=()=>{try{const u=JSON.parse(localStorage.getItem('sveltia-cms.user')||'null');return u&&u.token}catch(e){return null}};
   const first=tok();
