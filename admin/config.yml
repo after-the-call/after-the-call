@@ -1,0 +1,125 @@
+# 出勤之後｜刊登後台設定（Sveltia CMS）
+# 後台網址：https://after-the-call.github.io/after-the-call/admin/
+# 團隊在後台按「儲存」後，內容會直接存進 GitHub，網站約 1 到 2 分鐘後更新。
+backend:
+  name: github
+  repo: after-the-call/after-the-call
+  branch: main
+  # 之後若架好免費的登入服務（Cloudflare Workers 上的 sveltia-cms-auth），把網址填在這裡，團隊就能直接按「用 GitHub 登入」：
+  # base_url: https://sveltia-cms-auth.xxxx.workers.dev
+
+site_url: https://after-the-call.github.io/after-the-call/
+display_url: https://after-the-call.github.io/after-the-call/
+logo_url: https://after-the-call.github.io/after-the-call/admin/logo.svg
+
+media_folder: assets/uploads
+public_folder: assets/uploads
+
+collections:
+  - name: notices
+    label: 公告
+    icon: campaign
+    files:
+      - name: notices
+        label: 所有公告
+        file: data/notices.json
+        format: json
+        fields:
+          - name: hot_count
+            label: 首頁輪播最多幾則
+            widget: number
+            value_type: int
+            default: 5
+            min: 1
+            max: 10
+            hint: 置頂的公告優先，再由上往下補，合計這個數量。
+          - name: notices
+            label: 公告
+            label_singular: 公告
+            widget: list
+            add_to_top: true
+            collapsed: true
+            summary: "{{fields.date}}｜{{fields.title}}"
+            hint: 新增的公告會出現在最上面，網站也照這裡的順序排（置頂的會排到最前面）。可以拖曳調整順序。不想刊登就把「上架」關掉，不用刪除。
+            fields:
+              - {name: title, label: 標題, widget: string}
+              - name: published
+                label: 上架
+                widget: boolean
+                default: true
+                hint: 關掉就是下架，網站上看不到，資料還留著。
+              - {name: pinned, label: 置頂, widget: boolean, default: false, hint: 打開後會固定排在最前面。}
+              - {name: hot, label: 放進首頁輪播, widget: boolean, default: true}
+              - name: type
+                label: 類型
+                widget: select
+                options: [Podcast, 招募, 調查, 活動, 課程, 其他]
+                required: false
+                hint: 公告頁會依類型自動做出篩選按鈕。
+              - name: date
+                label: 日期
+                widget: string
+                hint: 例如 2027-01-15，也可以寫「2027-02 中旬（預定）」。
+              - name: summary
+                label: 摘要
+                widget: text
+                required: false
+                hint: 列表上顯示的一兩句話。不填的話會自動用內容的開頭。
+              - name: body
+                label: 內容
+                widget: markdown
+                required: false
+                hint: 點進公告後看到的完整內容。可以分段、加粗、條列、插入連結或圖片。
+              - name: images
+                label: 圖片
+                label_singular: 圖片
+                widget: list
+                required: false
+                hint: 第一張會放在標題下方當主圖，其餘排在內容後面。
+                summary: "{{fields.cap}}"
+                fields:
+                  - {name: src, label: 圖片檔, widget: image}
+                  - {name: cap, label: 圖說, widget: string, required: false}
+              - name: links
+                label: 連結按鈕
+                label_singular: 連結
+                widget: list
+                required: false
+                hint: 第一個會是橘色主要按鈕，例如「立即報名」。
+                summary: "{{fields.text}}"
+                fields:
+                  - {name: text, label: 按鈕文字, widget: string, hint: 例如「立即報名」「填寫問卷」}
+                  - {name: url, label: 網址, widget: string, pattern: ['^https?://', '請貼上 http 或 https 開頭的完整網址']}
+              - name: id
+                label: 網址代號
+                widget: uuid
+                read_only: true
+                hint: 系統自動產生，用來做這則公告的網址，不用改。
+
+  - name: updates
+    label: 最新動態
+    icon: timeline
+    files:
+      - name: updates
+        label: 所有動態
+        file: data/updates.json
+        format: json
+        fields:
+          - name: updates
+            label: 動態
+            label_singular: 動態
+            widget: list
+            add_to_top: true
+            collapsed: true
+            summary: "{{fields.date}}｜{{fields.title}}"
+            hint: 計畫進度紀錄，新的在最上面。
+            fields:
+              - {name: title, label: 標題, widget: string}
+              - {name: published, label: 上架, widget: boolean, default: true}
+              - name: tag
+                label: 類別
+                widget: select
+                options: [調查, Podcast, 試點, 倡議, 課程, 團隊]
+                required: false
+              - {name: date, label: 日期, widget: string, hint: 例如 2026-11 或 2026-11-26}
+              - {name: body, label: 內容, widget: text, required: false}

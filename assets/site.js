@@ -36,7 +36,7 @@
   /* ── 頁首與頁尾 ── */
   const logo='<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M4 33c10-1.5 22-1.5 32 0" stroke="#C9BFB0" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M10 19h20v13H10z" fill="#26333F"/><path d="M7 20 20 9l13 11" fill="#1D2834"/><rect x="17" y="23" width="6" height="5" rx="1" fill="#F5B85C"/><circle cx="33" cy="9" r="3" fill="#D2622A"/></svg>';
   const links=[['home',HOME,'首頁'],['notices','notices.html','公告'],['podcast','podcast.html','Podcast'],['updates','updates.html','最新動態'],['about','about.html','關於計畫']];
-  const cur=page==='episode'?'podcast':page;
+  const cur=page==='episode'?'podcast':page==='notice'?'notices':page;
   const head=document.createElement('header');head.className='site-head';
   head.innerHTML=`<div class="wrap"><a class="brand" href="${HOME}">${logo}<span><b>出勤之後</b><small>After the Call</small></span></a>
     <nav class="site-nav" aria-label="主選單"><ul>${links.map(([k,h,t])=>`<li><a href="${h}"${k===cur?' aria-current="page"':''}>${t}</a></li>`).join('')}</ul><a class="btn primary" href="podcast.html">收聽 Podcast</a></nav></div>`;
@@ -49,51 +49,115 @@
     <div class="base"><span>© ${new Date().getFullYear()} 出勤之後 After the Call</span><span>部分照片來自 Unsplash</span></div></div>`;
   document.body.append(foot);
 
-  /* ── 公告 ── */
-  /* 公告分「最新」和「一般」：置頂的優先，再由上往下補，合計前 NOTICE_HOT_COUNT 則（預設 5）。加 hot:false 可排除。 */
-  const notices=(window.NOTICES||[]).map((n,k)=>Object.assign({},n,{_k:k})).sort((a,b)=>((b.pinned?1:0)-(a.pinned?1:0))||a._k-b._k);
-  const HOT=+(window.NOTICE_HOT_COUNT||5);
-  notices.filter(n=>n.hot!==false).slice(0,HOT).forEach(n=>n._hot=true);
-  const hot=notices.filter(n=>n._hot);
-  const strip=$('#board-strip');
-  /* 首頁公告輪播：只播「最新」公告，每 5 秒自動換下一則 */
-  if(strip&&strip.querySelector('.nb-view')&&hot.length){
-    const view=strip.querySelector('.nb-view'),count=strip.querySelector('.nb-count');
-    view.innerHTML=hot.map((n,k)=>`<a class="nb-slide${k?'':' on'}" href="notices.html#n${n._k}" ${k?'tabindex="-1" aria-hidden="true"':''}><time>${esc(n.date)}</time><span class="t">${n.pinned?'<b class="pin">置頂</b>':''}${esc(n.title)}</span></a>`).join('');
-    const slides=[...view.children];let at=0,timer=null;
-    const show=k=>{const old=slides[at];at=(k+slides.length)%slides.length;if(old===slides[at])return;
-      old.classList.remove('on');old.classList.add('up');old.setAttribute('aria-hidden','true');old.tabIndex=-1;
-      const nw=slides[at];nw.classList.remove('up');nw.style.transition='none';nw.getBoundingClientRect();nw.style.transition='';nw.classList.add('on');nw.removeAttribute('aria-hidden');nw.removeAttribute('tabindex');
-      setTimeout(()=>old.classList.remove('up'),550);count.textContent=(at+1)+' / '+slides.length};
-    count.textContent='1 / '+slides.length;
-    const run=()=>{clearInterval(timer);if(slides.length>1)timer=setInterval(()=>show(at+1),5000)};
-    strip.querySelector('.nb-prev').onclick=()=>{show(at-1);run()};
-    strip.querySelector('.nb-next').onclick=()=>{show(at+1);run()};
-    if(slides.length<2)strip.querySelector('.nb-ctrl').hidden=true;
-    run();
+  /* ── 公告 ──
+     內容存在 data/notices.json，由刊登後台（/admin）編輯。
+     公告分「最新」和「一般」：置頂的優先，再由上往下補，合計前 hot_count 則（預設 5）。「放進首頁輪播」關掉可排除。
+     「上架」關掉的公告不會出現；網址加上 ?preview 可以先預覽。 */
+  const PREVIEW=/[?&]preview\b/.test(location.search);
+  /* 讀 data/*.json（刊登後台存的檔案）。加時間參數，避免瀏覽器拿到舊的快取。 */
+  const getJSON=f=>fetch(f+'?t='+Date.now(),{cache:'no-store'}).then(r=>{if(!r.ok)throw r.status;return r.json()});
+  function loadNotices(){
+    return getJSON('data/notices.json').then(d=>{
+      if(d.hot_count)window.NOTICE_HOT_COUNT=d.hot_count;
+      return (d.notices||[]).map((n,k)=>({id:String(n.id||'n'+k),date:n.date||'',type:n.type||'',title:n.title||'',summary:n.summary||'',body:n.body||'',
+        images:(n.images||[]).map(i=>typeof i==='string'?{src:i,cap:''}:{src:i.src||'',cap:i.cap||''}).filter(i=>i.src),
+        links:(n.links||[]).filter(l=>l&&l.url),pinned:!!n.pinned,published:n.published!==false,hot:n.hot!==false}));
+    }).catch(()=>[]);
   }
-  const nl=$('#notice-list');
-  if(nl){
-    const cats=['全部','最新','一般',...new Set(notices.map(n=>n.type).filter(Boolean))];
-    let sel='全部';const fl=$('#notice-filters');
-    const match=n=>sel==='全部'||(sel==='最新'&&n._hot)||(sel==='一般'&&!n._hot)||n.type===sel;
-    const draw=()=>{const list=notices.filter(match);
-      nl.innerHTML=list.length?list.map(n=>`<article class="list-row${n.pinned?' pinned':''}" id="n${n._k}"><time>${esc(n.date)}</time><span class="tag">${esc(n.type||'')}</span>
-      <h3>${n._hot&&!n.pinned?'<b class="new">最新</b>':''}${esc(n.title)}</h3><p>${esc(n.body)}${n.link?` <a href="${esc(n.link)}" target="_blank" rel="noopener">了解更多</a>`:''}</p></article>`).join(''):'<p style="padding:24px 0">目前沒有這類公告。</p>'};
-    if(fl){fl.innerHTML=cats.map((c,k)=>`${k===3?'<span class="sep" aria-hidden="true"></span>':''}<button type="button" aria-pressed="${c===sel}">${esc(c)}</button>`).join('');
-      fl.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;sel=b.textContent;fl.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()})}
-    draw();
-    const h=location.hash&&document.getElementById(location.hash.slice(1));if(h){h.classList.add('flash');setTimeout(()=>h.scrollIntoView({block:'center'}),50)}
+  const noticeURL=n=>'notice.html'+(PREVIEW?'?preview':'')+'#'+encodeURIComponent(n.id);
+  const plain=n=>{if(n.summary)return n.summary;const t=String(n.body||'').replace(/!\[[^\]]*\]\([^)]*\)/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[#*_>`~]+/g,'').replace(/\s+/g,' ').trim();return t.length>80?t.slice(0,80)+'…':t};
+  /* 公告內容（後台的 Markdown）轉成網頁：段落、換行、## 小標、**粗體**、*斜體*、條列、編號、> 引言、[連結](網址)、![圖說](圖片) */
+  const inline=s=>esc(s)
+    .replace(/!\[([^\]]*)\]\(([^)\s]+)[^)]*\)/g,(m,a,u)=>`<img src="${u}" alt="${a}" loading="lazy">`)
+    .replace(/\[([^\]]+)\]\(([^)\s]+)[^)]*\)/g,(m,t,u)=>`<a href="${u}"${/^https?:/.test(u)?' target="_blank" rel="noopener"':''}>${t}</a>`)
+    .replace(/(^|[\s（(])(https?:\/\/[^\s<>"）)]+)/g,(m,p,u)=>`${p}<a href="${u}" target="_blank" rel="noopener">${u.length>48?u.slice(0,46)+'…':u}</a>`)
+    .replace(/\*\*(.+?)\*\*|__(.+?)__/g,(m,a,b)=>`<strong>${a||b}</strong>`)
+    .replace(/(^|[^*])\*([^*\s][^*]*?)\*/g,'$1<em>$2</em>')
+    .replace(/\\([\\`*_{}\[\]()#+\-.!>])/g,'$1');
+  function md(src){
+    return String(src||'').replace(/\r/g,'').trim().split(/\n\s*\n/).map(b=>{
+      const ls=b.split('\n');
+      const h=b.match(/^(#{1,4})\s+(.*)$/);if(h&&ls.length===1){const lv=Math.min(4,h[1].length+1);return `<h${lv}>${inline(h[2])}</h${lv}>`}
+      if(ls.every(l=>/^\s*[-*+・•]\s+/.test(l)))return '<ul>'+ls.map(l=>'<li>'+inline(l.replace(/^\s*[-*+・•]\s+/,''))+'</li>').join('')+'</ul>';
+      if(ls.every(l=>/^\s*\d+[.)]\s+/.test(l)))return '<ol>'+ls.map(l=>'<li>'+inline(l.replace(/^\s*\d+[.)]\s+/,''))+'</li>').join('')+'</ol>';
+      if(ls.every(l=>/^\s*>/.test(l)))return '<blockquote>'+ls.map(l=>inline(l.replace(/^\s*>\s?/,''))).join('<br>')+'</blockquote>';
+      return '<p>'+ls.map(l=>inline(l.replace(/\s+$/,'').replace(/\\$/,''))).join('<br>')+'</p>'}).join('');
   }
-  const rn=$('#recent-notices');
-  if(rn) rn.innerHTML=notices.slice(0,3).map(n=>`<a class="list-row" href="notices.html"><time>${esc(n.date)}</time><h3>${esc(n.title)}</h3></a>`).join('');
+  const strip=$('#board-strip'),nl=$('#notice-list'),rn=$('#recent-notices'),nd=$('#notice');
+  if(strip||nl||rn||nd){
+    if(nl)nl.innerHTML='<p class="loading">公告載入中…</p>';
+    loadNotices().then(all=>{
+      const notices=all.filter(n=>n.published||PREVIEW).map((n,k)=>Object.assign({},n,{_k:k})).sort((a,b)=>((b.pinned?1:0)-(a.pinned?1:0))||a._k-b._k);
+      const HOT=+(window.NOTICE_HOT_COUNT||5);
+      notices.filter(n=>n.hot&&n.published).slice(0,HOT).forEach(n=>n._hot=true);
+      const hot=notices.filter(n=>n._hot);
+      const badge=n=>n.published?'':'<b class="off">未上架</b>';
+      /* 首頁公告輪播：只播「最新」公告，每 5 秒自動換下一則 */
+      if(strip&&strip.querySelector('.nb-view')&&hot.length){
+        const view=strip.querySelector('.nb-view'),count=strip.querySelector('.nb-count');
+        view.innerHTML=hot.map((n,k)=>`<a class="nb-slide${k?'':' on'}" href="${noticeURL(n)}" ${k?'tabindex="-1" aria-hidden="true"':''}><time>${esc(n.date)}</time><span class="t">${n.pinned?'<b class="pin">置頂</b>':''}${esc(n.title)}</span></a>`).join('');
+        const slides=[...view.children];let at=0,timer=null;
+        const show=k=>{const old=slides[at];at=(k+slides.length)%slides.length;if(old===slides[at])return;
+          old.classList.remove('on');old.classList.add('up');old.setAttribute('aria-hidden','true');old.tabIndex=-1;
+          const nw=slides[at];nw.classList.remove('up');nw.style.transition='none';nw.getBoundingClientRect();nw.style.transition='';nw.classList.add('on');nw.removeAttribute('aria-hidden');nw.removeAttribute('tabindex');
+          setTimeout(()=>old.classList.remove('up'),550);count.textContent=(at+1)+' / '+slides.length};
+        count.textContent='1 / '+slides.length;
+        const run=()=>{clearInterval(timer);if(slides.length>1)timer=setInterval(()=>show(at+1),5000)};
+        strip.querySelector('.nb-prev').onclick=()=>{show(at-1);run()};
+        strip.querySelector('.nb-next').onclick=()=>{show(at+1);run()};
+        if(slides.length<2)strip.querySelector('.nb-ctrl').hidden=true;
+        run();
+      }
+      if(nl){
+        const cats=['全部','最新','一般',...new Set(notices.map(n=>n.type).filter(Boolean))];
+        let sel='全部';const fl=$('#notice-filters');
+        const match=n=>sel==='全部'||(sel==='最新'&&n._hot)||(sel==='一般'&&!n._hot)||n.type===sel;
+        const draw=()=>{const list=notices.filter(match);
+          nl.innerHTML=list.length?list.map(n=>`<a class="list-row${n.pinned?' pinned':''}" id="n-${esc(n.id)}" href="${noticeURL(n)}"><time>${esc(n.date)}</time><span class="tag">${esc(n.type||'')}</span>
+          <h3>${badge(n)}${n._hot&&!n.pinned?'<b class="new">最新</b>':''}${esc(n.title)}</h3><p>${esc(plain(n))}<span class="more">看完整公告</span></p></a>`).join(''):'<p style="padding:24px 0">目前沒有這類公告。</p>'};
+        if(fl){fl.innerHTML=cats.map((c,k)=>`${k===3?'<span class="sep" aria-hidden="true"></span>':''}<button type="button" aria-pressed="${c===sel}">${esc(c)}</button>`).join('');
+          fl.onclick=e=>{const b=e.target.closest('button');if(!b)return;sel=b.textContent;fl.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()}}
+        draw();
+        /* 舊連結 notices.html#n0 轉到詳細頁 */
+        const m=location.hash.match(/^#n(\d+)$/);if(m){const t=all.find(n=>n.id==='n'+m[1]);if(t)location.replace(noticeURL(t))}
+      }
+      if(rn) rn.innerHTML=notices.slice(0,3).map(n=>`<a class="list-row" href="${noticeURL(n)}"><time>${esc(n.date)}</time><h3>${esc(n.title)}</h3></a>`).join('');
+      if(nd){
+        const draw=()=>{
+          const id=decodeURIComponent(location.hash.slice(1));const n=notices.find(x=>x.id===id);
+          if(!n){document.title='公告｜出勤之後';nd.innerHTML='<div class="wrap nd-empty"><p>這則公告已經下架，或是網址不完整。</p><a class="btn outline" href="notices.html">看所有公告</a></div>';return}
+          document.title=n.title+'｜出勤之後';
+          const [hero,...rest]=n.images;
+          const others=notices.filter(x=>x!==n).slice(0,4);
+          nd.innerHTML=`<article class="nd"><div class="wrap nd-grid">
+            <div class="nd-main">
+              <a class="nd-back" href="notices.html">← 所有公告</a>
+              ${n.published?'':'<p class="nd-preview">這是預覽，這則公告還沒有上架，一般訪客看不到。</p>'}
+              <p class="nd-meta">${n.type?`<span class="tag">${esc(n.type)}</span>`:''}${n.pinned?'<b class="pin">置頂</b>':''}<time>${esc(n.date)}</time></p>
+              <h1>${esc(n.title)}</h1>
+              ${n.summary?`<p class="nd-lead">${esc(n.summary)}</p>`:''}
+              ${hero?`<figure class="nd-hero"><img src="${esc(hero.src)}" alt="${esc(hero.cap||n.title)}">${hero.cap?`<figcaption>${esc(hero.cap)}</figcaption>`:''}</figure>`:''}
+              <div class="nd-text">${md(n.body||n.summary)}</div>
+              ${rest.length?`<div class="nd-gallery">${rest.map(i=>`<figure><a href="${esc(i.src)}" target="_blank" rel="noopener"><img src="${esc(i.src)}" alt="${esc(i.cap||'')}" loading="lazy"></a>${i.cap?`<figcaption>${esc(i.cap)}</figcaption>`:''}</figure>`).join('')}</div>`:''}
+              ${n.links.length?`<div class="nd-links">${n.links.map((l,k)=>`<a class="btn ${k?'outline':'primary'}" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.text||'前往連結')}</a>`).join('')}</div>`:''}
+            </div>
+            <aside class="nd-side">${others.length?`<h3>其他公告</h3><ul>${others.map(x=>`<li><a href="${noticeURL(x)}"><time>${esc(x.date)}</time><span>${esc(x.title)}</span></a></li>`).join('')}</ul><a class="arrow-link" href="notices.html">全部公告</a>`:''}
+              <div class="box"><h3>需要聊聊</h3><p>1925 安心專線 24 小時都有人接。</p></div></aside>
+          </div></article>`;
+          window.scrollTo(0,0);
+        };
+        draw();window.addEventListener('hashchange',draw);
+      }
+    });
+  }
 
   /* ── 最新動態 ── */
-  const updates=window.UPDATES||[];
-  const ul=$('#update-list');
-  if(ul) ul.innerHTML=updates.map(u=>`<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div><h3>${esc(u.title)}</h3><p>${esc(u.body)}</p></div></li>`).join('');
-  const ru=$('#recent-updates');
-  if(ru) ru.innerHTML=updates.slice(0,3).map(u=>`<a class="list-row" href="updates.html"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
+  const ul=$('#update-list'),ru=$('#recent-updates');
+  if(ul||ru) getJSON('data/updates.json').then(d=>{
+    const updates=(d.updates||[]).filter(u=>u.published!==false);
+    if(ul) ul.innerHTML=updates.map(u=>`<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div><h3>${esc(u.title)}</h3><p>${esc(u.body)}</p></div></li>`).join('');
+    if(ru) ru.innerHTML=updates.slice(0,3).map(u=>`<a class="list-row" href="updates.html"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
+  }).catch(()=>{});
 
   /* ── Podcast 資料 ── */
   const podcast=window.PODCAST||{episodes:[]};
@@ -226,7 +290,7 @@
   /* ── 自動同步 Firstory（免費版最多回傳 10 集，較舊的從快照補上） ── */
   const st=$('#feed-status');
   if(st) st.textContent='單集清單：備用快照（'+episodes.length+' 集）';
-  if(podcast.rss&&page!=='notices'&&page!=='updates'&&page!=='about'){
+  if(podcast.rss&&page!=='notices'&&page!=='notice'&&page!=='updates'&&page!=='about'){
     fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(podcast.rss)).then(r=>r.json()).then(d=>{
       if(d.status!=='ok'||!d.items||!d.items.length)return;
       const toText=h=>{const t=document.createElement('div');t.innerHTML=(h||'').replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n\n');return (t.textContent||'').replace(/ /g,' ').split(/\n?📍/)[0].replace(/\n{3,}/g,'\n\n').trim()};
