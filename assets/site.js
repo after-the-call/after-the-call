@@ -59,9 +59,9 @@
   function loadNotices(){
     return getJSON('data/notices.json').then(d=>{
       if(d.hot_count)window.NOTICE_HOT_COUNT=d.hot_count;
-      return (d.notices||[]).map((n,k)=>({id:String(n.id||'n'+k),date:n.date||'',type:n.type||'',title:n.title||'',summary:n.summary||'',body:n.body||'',
+      return (d.notices||[]).map((n,k)=>({id:String(n.id||'n'+k),date:n.date_text||n.date||'',status:n.status||(n.published===false?'下架':'上架'),type:n.type||'',title:n.title||'',summary:n.summary||'',body:n.body||'',
         images:(n.images||[]).map(i=>typeof i==='string'?{src:i,cap:''}:{src:i.src||'',cap:i.cap||''}).filter(i=>i.src),
-        links:(n.links||[]).filter(l=>l&&l.url),pinned:!!n.pinned,published:n.published!==false,hot:n.hot!==false}));
+        links:(n.links||[]).filter(l=>l&&l.url),pinned:!!n.pinned,published:n.status?n.status==='上架':n.published!==false,hot:n.hot!==false}));
     }).catch(()=>[]);
   }
   const noticeURL=n=>'notice.html'+(PREVIEW?'?preview':'')+'#'+encodeURIComponent(n.id);
@@ -91,7 +91,7 @@
       const HOT=+(window.NOTICE_HOT_COUNT||5);
       notices.filter(n=>n.hot&&n.published).slice(0,HOT).forEach(n=>n._hot=true);
       const hot=notices.filter(n=>n._hot);
-      const badge=n=>n.published?'':'<b class="off">未上架</b>';
+      const badge=n=>n.published?'':`<b class="off">${n.status==='下架'?'已下架':'草稿'}</b>`;
       /* 首頁公告輪播：只播「最新」公告，每 5 秒自動換下一則 */
       if(strip&&strip.querySelector('.nb-view')&&hot.length){
         const view=strip.querySelector('.nb-view'),count=strip.querySelector('.nb-count');
@@ -132,7 +132,7 @@
           nd.innerHTML=`<article class="nd"><div class="wrap nd-grid">
             <div class="nd-main">
               <a class="nd-back" href="notices.html">← 所有公告</a>
-              ${n.published?'':'<p class="nd-preview">這是預覽，這則公告還沒有上架，一般訪客看不到。</p>'}
+              ${n.published?'':`<p class="nd-preview">這是預覽：這則公告目前是「${esc(n.status)}」，一般訪客看不到。</p>`}
               <p class="nd-meta">${n.type?`<span class="tag">${esc(n.type)}</span>`:''}${n.pinned?'<b class="pin">置頂</b>':''}<time>${esc(n.date)}</time></p>
               <h1>${esc(n.title)}</h1>
               ${n.summary?`<p class="nd-lead">${esc(n.summary)}</p>`:''}
@@ -154,7 +154,7 @@
   /* ── 最新動態 ── */
   const ul=$('#update-list'),ru=$('#recent-updates');
   if(ul||ru) getJSON('data/updates.json').then(d=>{
-    const updates=(d.updates||[]).filter(u=>u.published!==false);
+    const updates=(d.updates||[]).filter(u=>u.status?u.status==='上架':u.published!==false).map(u=>Object.assign({},u,{date:u.date_text||u.date||''}));
     if(ul) ul.innerHTML=updates.map(u=>`<li><div><p class="when">${esc(u.date)}</p>${u.tag?`<span class="tag">${esc(u.tag)}</span>`:''}</div><div><h3>${esc(u.title)}</h3><p>${esc(u.body)}</p></div></li>`).join('');
     if(ru) ru.innerHTML=updates.slice(0,3).map(u=>`<a class="list-row" href="updates.html"><time>${esc(u.date)}</time><h3>${esc(u.title)}</h3></a>`).join('');
   }).catch(()=>{});
